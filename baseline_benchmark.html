@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VaultSync | Non-Encrypted Baseline</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <a href="/baseline-benchmark">Baseline Benchmark</a>
+    <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<div class="main-content">
+    <div class="topbar">
+        <h1>Non-Encrypted Baseline Benchmark</h1>
+    </div>
+
+    <div class="upload-wrapper">
+        <div class="upload-card">
+            <form id="baselineForm">
+                <label>Select File</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="baselineFile" required>
+                </div>
+                <button type="submit">Run Baseline Test</button>
+            </form>
+            <p id="baselineResult" style="margin-top:16px; opacity:0.85;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+async function postClientMetric(metricName, mode, durationMs, fileSizeMb){
+    await fetch("/metrics/client", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            metric_name: metricName,
+            mode: mode,
+            duration_ms: durationMs,
+            file_size_mb: fileSizeMb
+        })
+    });
+}
+
+document.getElementById("baselineForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const fileInput = document.getElementById("baselineFile");
+    const result = document.getElementById("baselineResult");
+    const file = fileInput.files[0];
+
+    if (!file) {
+        result.innerText = "Select a file first.";
+        return;
+    }
+
+    result.innerText = "Running baseline benchmark...";
+
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadStart = performance.now();
+        const uploadRes = await fetch("/baseline/upload", {
+            method: "POST",
+            body: formData
+        });
+        let uploadJson = null;
+        try {
+            uploadJson = await uploadRes.json();
+        } catch {
+            const rawText = await uploadRes.text();
+            result.innerText = `Baseline upload failed (${uploadRes.status}). ${rawText || "Server returned non-JSON response."}`;
+            return;
+        }
+
+        if (!uploadRes.ok) {
+            result.innerText = uploadJson.error || `Baseline upload failed (${uploadRes.status})`;
+            return;
+        }
+
+        if (!uploadJson.success) {
+            result.innerText = uploadJson.error || "Baseline upload failed";
+            return;
+        }
+
+        const uploadMs = performance.now() - uploadStart;
+        const fileSizeMb = file.size / (1024 * 1024);
+
+        await postClientMetric("upload_total", "non_encrypted", uploadMs, fileSizeMb);
+
+        const downloadStart = performance.now();
+        const downloadRes = await fetch(`/baseline/download/${uploadJson.token}`);
+
+        if (!downloadRes.ok) {
+            result.innerText = "Baseline download failed";
+            return;
+        }
+
+        const blob = await downloadRes.blob();
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = file.name;
+        link.click();
+        URL.revokeObjectURL(link.href);
+
+        const downloadMs = performance.now() - downloadStart;
+
+        await postClientMetric("download_open_total", "non_encrypted", downloadMs, fileSizeMb);
+
+        result.innerText = `Done. Upload: ${uploadMs.toFixed(1)} ms, Download+open: ${downloadMs.toFixed(1)} ms`;
+
+    } catch (err) {
+        console.error(err);
+        result.innerText = "Benchmark failed. Check console/server.";
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Share File</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+
+<div class="main-content">
+
+    <div class="topbar">
+        <h1>Share File</h1>
+        <!-- <div class="user-info">Welcome, {{ username }}</div> -->
+
+        <!-- ✅ FIX: show original filename -->
+        <p style="opacity:0.6;">{{ file.original_filename }}</p>
+
+    </div>
+
+<form method="POST">
+
+<div class="files-grid" id="usersList">
+
+{% for user in users %}
+
+<div class="user-card" onclick="toggleUser(this)">
+
+    <input
+        type="checkbox"
+        name="user_ids[]"
+        value="{{ user.id }}"
+        data-publickey="{{ user.public_key | safe }}"
+        hidden
+    >
+
+    <span class="user-name">{{ user.username }}</span>
+
+</div>
+
+{% endfor %}
+
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="toast-container">
+{% for category, message in messages %}
+<div class="toast {{ category }}">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+</div>
+
+<button type="submit" class="modal-share-btn" style="margin-top:25px;">
+Share With Selected Users
+</button>
+
+</form>
+
+</div>
+
+<script>
+
+/* =========================================
+THEME TOAST POPUP
+========================================= */
+
+function showToast(message,type="success"){
+
+    let container=document.querySelector(".toast-container")
+
+    if(!container){
+        container=document.createElement("div")
+        container.className="toast-container"
+        document.body.appendChild(container)
+    }
+
+    const toast=document.createElement("div")
+    toast.className="toast "+type
+    toast.innerText=message
+
+    container.appendChild(toast)
+
+    setTimeout(()=>{
+        toast.classList.add("hide")
+        setTimeout(()=>toast.remove(),500)
+    },3000)
+
+}
+
+
+/* =========================================
+CLICK ANYWHERE TO SELECT USER
+========================================= */
+
+function toggleUser(card){
+
+    const checkbox = card.querySelector("input[type='checkbox']")
+
+    checkbox.checked = !checkbox.checked
+
+    if(checkbox.checked){
+        card.classList.add("selected")
+    }
+    else{
+        card.classList.remove("selected")
+    }
+
+}
+
+
+/* =========================================
+SHARING LOGIC
+========================================= */
+
+async function handleShare(e) {
+
+    e.preventDefault()
+
+    const checkboxes = document.querySelectorAll('input[name="user_ids[]"]:checked')
+
+    /* FIX 1 : NO USER SELECTED */
+
+    if (checkboxes.length === 0) {
+        showToast("Select at least one user","error")
+        return
+    }
+
+    const privateKeyBase64 = sessionStorage.getItem("private_key")
+
+    /* FIX 2 : PRIVATE KEY MISSING */
+
+    if (!privateKeyBase64) {
+        showToast("Private key not found. Please login again.","error")
+        return
+    }
+
+    try {
+
+    const res = await fetch(`/get_aes_key/{{ file_id }}`)
+    const data = await res.json()
+
+    if (data.error) {
+        showToast(data.error,"error")
+        return
+    }
+
+    const ownerEncryptedAES = base64ToArrayBuffer(data.encrypted_aes_key)
+
+    const privateKey = await crypto.subtle.importKey(
+        "pkcs8",
+        base64ToArrayBuffer(privateKeyBase64),
+        { name:"RSA-OAEP", hash:"SHA-256"},
+        false,
+        ["decrypt"]
+    )
+
+    const aesKeyRaw = await crypto.subtle.decrypt(
+        {name:"RSA-OAEP"},
+        privateKey,
+        ownerEncryptedAES
+    )
+
+    const newShares = []
+
+    for (let cb of checkboxes){
+
+        const userId = cb.value
+        const publicKeyPem = cb.dataset.publickey
+
+        const publicKey = await importPublicKey(publicKeyPem)
+
+        const encryptedForUser = await crypto.subtle.encrypt(
+            {name:"RSA-OAEP"},
+            publicKey,
+            aesKeyRaw
+        )
+
+        newShares.push({
+            user_id:userId,
+            encrypted_aes_key:arrayBufferToBase64(encryptedForUser)
+        })
+    }
+
+    const saveRes = await fetch(`/save_shared_keys/{{ file_id }}`,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body:JSON.stringify({shares:newShares})
+    })
+
+    const result = await saveRes.json()
+
+    /* FIX 3 : SERVER ERROR */
+
+    if(!saveRes.ok){
+        showToast(result.error || "Failed to share file","error")
+        return
+    }
+
+    /* FIX 4 : SHOW SERVER MESSAGE */
+
+    showToast(result.message || "File shared successfully","success")
+
+    /* redirect after toast */
+
+    setTimeout(()=>{
+        window.location.href="/files"
+    },1200)
+
+}
+catch(err){
+
+    console.error("Sharing error:",err)
+
+    showToast("Failed to share file","error")
+
+}
+
+}
+
+
+/* =========================================
+HELPERS
+========================================= */
+
+async function importPublicKey(pem){
+
+    const base64 = pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\s+/g,'')
+
+    const binaryDer = base64ToArrayBuffer(base64)
+
+    return await crypto.subtle.importKey(
+        "spki",
+        binaryDer,
+        {name:"RSA-OAEP",hash:"SHA-256"},
+        false,
+        ["encrypt"]
+    )
+
+}
+
+
+function base64ToArrayBuffer(base64){
+
+    const binary = atob(base64)
+
+    const bytes = new Uint8Array(binary.length)
+
+    for(let i=0;i<binary.length;i++){
+        bytes[i] = binary.charCodeAt(i)
+    }
+
+    return bytes.buffer
+
+}
+
+
+function arrayBufferToBase64(buffer){
+
+    let binary = ""
+
+    const bytes = new Uint8Array(buffer)
+
+    for(let i=0;i<bytes.byteLength;i++){
+        binary += String.fromCharCode(bytes[i])
+    }
+
+    return btoa(binary)
+
+}
+
+
+/* =========================================
+ATTACH SUBMIT
+========================================= */
+
+document.querySelector("form").addEventListener("submit",handleShare)
+
+</script>
+
+</body>
+</html>

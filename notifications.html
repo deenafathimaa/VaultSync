@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VaultSync | Notifications</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <!-- <a href="/requests">Requests</a> -->
+    <!-- <a href="/notifications" class="active">Notifications</a> -->
+    <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<div class="main-content">
+
+<div class="topbar">
+    <h1>Notifications</h1>
+</div>
+
+<div class="files-grid">
+{% for n in notifications %}
+<div class="file-card">
+
+    <h3>
+        {% if n[1] == 'approved' %}
+            <span style="color:#4caf50;">✔ Approved</span> – File: {{ n[2].rsplit('.', 1)[0] if '.' in n[2] else n[2] }} → Owner has granted your access request.
+        {% elif n[1] == 'rejected' %}
+            <span style="color:#ff5c5c;">✖ Rejected</span> – File: {{ n[2] }} → {{ n[0] }}
+        {% else %}
+            ⏳ Pending – File: {{ n[2] }} → {{ n[0] }}
+        {% endif %}
+    </h3>
+
+</div>
+{% endfor %}
+</div>
+
+</div>
+
+</body>
+</html>

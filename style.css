@@ -1,0 +1,1522 @@
+/* ------------------------------
+   GLOBAL STYLES
+------------------------------ */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ------------------------------
+   LOGIN PAGE
+------------------------------ */
+
+.login-body {
+    height: 100vh;
+    background: linear-gradient(135deg, #37353E, #44444E);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    background: transparent;
+    padding: 40px;
+    width: 400px;
+    text-align: center;
+}
+
+/* Headings */
+.login-card h2 {
+    color: #ffffff;
+    font-size: 38px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #ffffff;
+    opacity: 0.7;
+    margin-bottom: 45px;
+    font-size: 16px;
+}
+
+/* ------------------------------
+   INPUT FIELDS
+------------------------------ */
+
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.login-card input {
+    width: 100%;
+    height: 55px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: none;
+    background: #44444E;
+    color: #ffffff;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.login-card input::placeholder {
+    color: #ffffff;
+    opacity: 0.5;
+}
+
+/* Eye Icon */
+.toggle-password {
+    position: absolute;
+    right: 18px;
+    top: 16px;
+    cursor: pointer;
+}
+
+/* ------------------------------
+   BUTTON
+------------------------------ */
+
+.login-card button {
+    width: 100%;
+    height: 55px;
+    background: #715A5A;
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 10px;
+}
+
+.login-card button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+
+/* ------------------------------
+   LINKS
+------------------------------ */
+
+.login-links {
+    margin-top: 30px;
+}
+
+.login-links a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.login-links a:hover {
+    text-decoration: underline;
+}
+
+/* ------------------------------
+   NORMAL PAGES
+------------------------------ */
+
+.container {
+    width: 60%;
+    margin: 50px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.file-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* ------------------------------
+   DASHBOARD PAGE
+------------------------------ */
+
+.dashboard-body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #37353E, #44444E);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dashboard-container {
+    width: 100%;
+    max-width: 1100px;
+    padding: 40px;
+    text-align: center;
+    color: white;
+}
+
+.dashboard-header h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    opacity: 0.7;
+    margin-bottom: 50px;
+}
+
+/* Cards Layout */
+
+.dashboard-cards {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+/* Individual Card */
+
+.dashboard-card {
+    background: #44444E;
+    padding: 30px;
+    width: 280px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    transition: 0.3s ease;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    background: #715A5A;
+}
+
+/* Icon */
+
+.card-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+/* Logout special color */
+
+.logout-card:hover {
+    background: #b04a4a;
+}
+
+/* ========================================
+   APP LAYOUT (SIDEBAR + NAVBAR)
+======================================== */
+
+.app-body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #37353E, #44444E);
+    display: flex;
+    min-height: 100vh;
+    color: white;
+}
+
+/* Sidebar */
+
+.sidebar {
+    width: 240px;
+    background: #2f2e36;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h2 {
+    color: white;
+    margin-bottom: 40px;
+    font-size: 22px;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    transition: 0.3s ease;
+    display: block;
+}
+
+.sidebar a:hover {
+    background: #715A5A;
+}
+
+/* Main Content */
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+}
+
+/* Top Navbar */
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.topbar h1 {
+    font-size: 28px;
+}
+
+.user-info {
+    opacity: 0.7;
+}
+
+/* ========================================
+   UPLOAD PAGE
+======================================== */
+
+.upload-card {
+    background: #44444E;
+    padding: 30px;
+    border-radius: 16px;
+    width: 500px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    animation: fadeIn 0.5s ease;
+}
+
+.upload-card label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 15px;
+}
+
+.upload-card input,
+.upload-card select {
+    width: 100%;
+    height: 45px;
+    border-radius: 10px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 0 15px;
+    margin-bottom: 15px;
+}
+
+.upload-card button {
+    width: 100%;
+    height: 50px;
+    border-radius: 10px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.upload-card button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+
+/* ========================================
+   FILE CARDS
+======================================== */
+
+/* .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+} */
+
+.files-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* .file-card {
+    background: #44444E;
+    padding: 20px;
+    border-radius: 16px;
+    transition: 0.3s ease;
+    box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+    animation: fadeIn 0.4s ease;
+} */
+
+.file-card {
+    background: #44444E;
+    padding: 18px 25px;
+    border-radius: 0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.file-card:hover:not(:has(.file-actions:hover)) {
+    transform: translateY(-6px);
+    background: #715A5A;
+}
+
+.file-card h3 {
+    margin: 0 0 10px 0;
+}
+
+.file-card p {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.file-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+
+.file-info h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.file-info p {
+    margin: 5px 0 0 0;
+    font-size: 13px;
+    opacity: 0.7;
+}
+/* .file-card a {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: white;
+    color: #37353E;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s ease;
+} */
+
+.file-card {
+    background: #44444E;
+    padding: 18px 25px;
+    border-radius: 14px;
+
+    display: grid;
+    grid-template-columns: 1fr 350px 120px; 
+    align-items: center;
+
+    transition: 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.file-card a:hover {
+    background: #D3DAD9;
+}
+
+/* ========================================
+   ANIMATIONS
+======================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+   DASHBOARD CENTER CARDS (SIDEBAR VERSION)
+======================================== */
+
+.dashboard-cards {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+
+.dashboard-card {
+    background: #44444E;
+    padding: 30px;
+    width: 260px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    transition: 0.3s ease;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    background: #715A5A;
+}
+
+.card-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.logout-card:hover {
+    background: #b04a4a;
+}
+
+/* ========================================
+   UPLOAD PAGE (FIXED & CENTERED)
+======================================== */
+
+.upload-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+}
+
+.upload-card {
+    background: #44444E;
+    padding: 35px;
+    border-radius: 18px;
+    width: 500px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    animation: fadeIn 0.4s ease;
+}
+
+.upload-card label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 18px;
+    font-weight: 500;
+}
+
+/* Make file input look same as select */
+
+.file-input-wrapper {
+    width: 100%;
+}
+
+.file-input-wrapper input[type="file"] {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+/* Remove ugly default browser style */
+.file-input-wrapper input[type="file"]::file-selector-button {
+    background: #715A5A;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+.file-input-wrapper input[type="file"]::file-selector-button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+
+/* Select field same height */
+
+.upload-card select {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 0 15px;
+    margin-bottom: 20px;
+}
+
+/* Button */
+
+.upload-card button {
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 15px;
+}
+
+.upload-card button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}/* ========================================
+   UPLOAD PAGE (FINAL POLISHED VERSION)
+======================================== */
+
+.upload-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+}
+
+.upload-card {
+    background: #44444E;
+    padding: 35px;
+    border-radius: 18px;
+    width: 500px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    animation: fadeIn 0.4s ease;
+}
+
+.upload-card label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 18px;
+    font-weight: 500;
+}
+
+/* ---------------- FILE INPUT ---------------- */
+
+.file-input-wrapper input[type="file"] {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.file-input-wrapper input[type="file"]::file-selector-button {
+    background: #715A5A;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 15px;
+    transition: 0.3s ease;
+}
+
+.file-input-wrapper input[type="file"]::file-selector-button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+
+/* ---------------- SELECT FIELD FIX ---------------- */
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 0 45px 0 15px; /* Extra right padding for arrow */
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* Custom dropdown arrow */
+.select-wrapper::after {
+    content: "▼";
+    position: absolute;
+    right: 20px;  /* ← MOVED LEFT (was too right before) */
+    top: 35%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+/* ---------------- BUTTON ---------------- */
+
+.upload-card button {
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 15px;
+}
+
+.upload-card button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+/* ===============================
+   TOAST POPUP
+=============================== */
+
+.toast {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    padding: 15px 25px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    animation: slideIn 0.4s ease;
+    z-index: 9999;
+}
+
+.toast.success {
+    background: #28a745;
+}
+
+.toast.error {
+    background: #dc3545;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+/* Smooth fade out */
+.toast.hide {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: 0.5s ease;
+}
+/* ===============================
+   TOAST SYSTEM
+=============================== */
+
+.toast-container {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 9999;
+}
+
+.toast {
+    padding: 15px 25px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    animation: slideIn 0.4s ease;
+}
+
+/* Success */
+.toast.success {
+    background: #28a745;
+}
+
+/* Error */
+.toast.error {
+    background: #dc3545;
+}
+
+/* Fade out */
+.toast.hide {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.toast-container {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 9999;
+}
+
+.toast {
+    padding: 15px 25px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    animation: slideIn 0.4s ease;
+}
+
+.toast.success {
+    background: #28a745;
+}
+
+.toast.error {
+    background: #dc3545;
+}
+
+.toast.hide {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+/* ===============================
+   MODERN MULTI SELECT
+=============================== */
+
+.share-form {
+    margin-top: 15px;
+}
+
+.share-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+.select-wrapper-dark select {
+    width: 100%;
+    height: 90px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+    transition: 0.3s ease;
+}
+
+.select-wrapper-dark select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #715A5A;
+}
+
+/* Style individual options */
+.select-wrapper-dark option {
+    background: #37353E;
+    color: white;
+    padding: 8px;
+}
+
+/* Share button */
+.share-btn {
+    width: 100%;
+    height: 40px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.share-btn:hover {
+    background: #D3DAD9;
+    color: #37353E;
+
+}
+
+
+
+
+
+/* ========================================
+   FILE ACTION ICONS
+======================================== */
+
+.file-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+}
+
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 0px;
+    border: none;
+    background: #37353E;
+    color: white;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.icon-btn:hover {
+    background: #715A5A;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   MODAL
+======================================== */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #2f2e36;
+    padding: 30px;
+    border-radius: 18px;
+    width: 400px;
+    animation: fadeIn 0.3s ease;
+}
+
+.close-modal {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+.modal-select select {
+    width: 100%;
+    height: 120px;
+    background: #37353E;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.modal-share-btn {
+    width: 100%;
+    height: 45px;
+    border-radius: 12px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.modal-share-btn:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 0px;
+    border: none;
+    background: #37353E;
+    color: white;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.icon-btn:hover {
+    background: #715A5A;
+    transform: translateY(-2px);
+}
+
+
+/* FORCE ICON BUTTON STYLE - FINAL FIX */
+
+.file-card a.icon-btn {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    background: #37353E !important;
+    color: white !important;
+    border-radius: 0px !important;
+    width: 42px !important;
+    height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+}
+
+
+
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+}
+
+
+/* FIX FOR BOTH A AND BUTTON ICONS */
+.file-card .icon-btn {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    background: #37353E !important;
+    color: white !important;
+    border-radius: 7px !important;
+    width: 42px !important;
+    height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+}
+
+/* Icon hover only */
+.file-card .icon-btn:hover {
+    background: #715A5A !important;
+    transform: translateY(-2px) !important;
+}
+
+.delete-btn:hover {
+    background: #b04a4a !important;
+}
+
+
+/* Share Page Search */
+.share-search {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: none;
+    background: #3b3b46;
+    color: white;
+    font-size: 15px;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+
+
+
+
+
+
+
+.user-card {
+    background: #3b3b46;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.user-card:hover {
+    background: #454552;
+}
+
+.user-card.selected {
+    background: #6d5454;
+}
+
+
+
+.password-card {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 30px;
+    box-sizing: border-box;   /* IMPORTANT */
+}
+
+.password-card form {
+    width: 100%;
+}
+
+.password-card input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 8px;
+    margin-bottom: 20px;
+    box-sizing: border-box;   /* IMPORTANT */
+}
+
+
+
+
+
+/* CENTER CHANGE PASSWORD PAGE PROPERLY */
+.password-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+}
+
+.password-card {
+    background: #44444E;
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.password-card input {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 0 15px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.password-card button {
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.password-card button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+
+
+
+/* .password-field .toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+} */
+
+
+
+
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-group input {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 0 45px 0 15px;
+    box-sizing: border-box;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 18px;
+    top: 20px;
+    cursor: pointer;
+}
+
+
+
+/* Remove default browser password reveal icons */
+
+/* Microsoft Edge */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
+
+/* Chrome */
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+}
+
+/* General fix */
+input[type="password"]::-webkit-textfield-decoration-container {
+    display: none;
+}
+
+
+.user-card{
+    background:#3a3a46;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.user-card:hover{
+    background:#4b4b5a;
+}
+
+.user-card.selected{
+    background:#6a5252;
+}
+
+.popup{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.popup-box{
+    background:#2f2f3a;
+    padding:30px;
+    border-radius:10px;
+    text-align:center;
+    width:320px;
+}
+
+.popup-box button{
+    margin-top:15px;
+    padding:8px 18px;
+    border:none;
+    background:#6a5252;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+
+.request-badge {
+    background: #b04a4a;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+}
+
+
+.file-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 🔥 PERFECT ICON BUTTON */
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #2c2c34;
+    border: none;
+    color: white;
+
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.icon-btn:hover {
+    background: #3a3a44;
+    transform: scale(1.05);
+}
+
+/* FIX SVG ALIGNMENT */
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* REQUEST BADGE */
+.request-info {
+    background: #b04a4a;
+    color: white;
+
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 1px;
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.bell-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.file-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.file-card h3 {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+
+/* approve button */
+.icon-btn.approve {
+    background: #4caf50;
+}
+
+.icon-btn.reject {
+    background: #ff5c5c;
+}
+
+/* hover effects */
+.icon-btn.approve:hover {
+    background: #3e9442;
+}
+
+.icon-btn.reject:hover {
+    background: #e04848;
+}
+
+
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    display: none; /* hidden by default */
+
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;   /* VERY IMPORTANT */
+}
+
+.modal-box {
+    background: #2c2c3a;
+    padding: 30px;
+    border-radius: 10px;
+    width: 300px;
+    text-align: center;
+}
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0,0,0,0.7);
+
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.popup-box {
+    background: #3a3a46;
+    padding: 35px 30px;
+    border-radius: 16px;
+    width: 360px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.popup-box h2 {
+    margin-bottom: 10px;
+}
+
+.popup-box p {
+    opacity: 0.7;
+    margin-bottom: 25px;
+}
+
+/* INPUT SAME AS LOGIN */
+.popup-box .input-group input {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    background: #37353E;
+    color: white;
+    padding: 0 45px 0 15px;
+}
+
+/* BUTTON SAME STYLE */
+.popup-box button {
+    width: 100%;
+    height: 50px;
+    margin-top: 15px;
+    border-radius: 12px;
+    border: none;
+    background: #715A5A;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.popup-box button:hover {
+    background: #D3DAD9;
+    color: #37353E;
+}
+
+.popup-box .input-group input {
+    height: 55px;   /* ✅ match login */
+}
+
+.popup-box button {
+    height: 55px;   /* ✅ match login */
+}
+
+.modal-overlay {
+    backdrop-filter: blur(3px); /* 🔥 modern feel */
+}
+
+
+.popup-box button {
+    width: 100%;
+    height: 55px;
+    border-radius: 12px;
+    border: none;
+
+    background: #715A5A !important;   /* 🔥 FORCE COLOR */
+    color: #ffffff !important;
+
+    font-weight: bold;
+    font-size: 16px;
+
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.popup-box button:hover {
+    background: #D3DAD9 !important;
+    color: #37353E !important;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;   /* 🔥 VERY IMPORTANT */
+}
+
+.modal-overlay {
+    z-index: 1000;   /* lower than toast */
+}
+
+
+.icon-btn,
+.bell-icon{
+    cursor: pointer;
+}
+
+
+
+.toast {
+    background: #22c55e;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* ERROR COLOR */
+.toast.error {
+    background: #ef4444;
+}
+
+/* SUCCESS COLOR */
+.toast.success {
+    background: #22c55e;
+}
+
+/* 🔥 THIS WAS MISSING */
+.toast.hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}

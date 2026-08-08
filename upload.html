@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VaultSync | Upload File</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="app-body">
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <!-- <a href="/change-password">Change Password</a> -->
+    <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <div class="topbar">
+        <h1>Upload File</h1>
+        <!-- <div class="user-info">Welcome, {{ username }}</div> -->
+    </div>
+
+    <div class="upload-wrapper">
+        <div class="upload-card">
+
+            <!-- IMPORTANT: form id added -->
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+
+                <label>Select File</label>
+
+                <div class="file-input-wrapper">
+                    <!-- IMPORTANT: id added -->
+                    <input type="file" id="fileInput" name="file" required>
+                </div>
+
+                <label>Access Duration</label>
+
+                <div class="select-wrapper">
+                    <select name="duration" required>
+                        <option value="">-- Select Duration --</option>
+                        <option value="0.083">5 Minutes</option>
+                        <option value="12">12 Hours</option>
+                        <option value="24">24 Hours</option>
+                        <option value="48">48 Hours</option>
+                    </select>
+                </div>
+
+                <!-- Hidden encrypted fields -->
+                <input type="hidden" name="encrypted_file" id="encrypted_file">
+                <input type="hidden" name="encrypted_aes_key" id="encrypted_aes_key">
+                <input type="hidden" id="original_filename" name="original_filename">
+
+                <button type="submit">Upload Securely</button>
+
+            </form>
+
+        </div>
+    </div>
+<div id="flash-message" class="flash-message" style="display:none;"></div>
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+const form = document.getElementById("uploadForm");
+
+/* ================= FILE NAME ================= */
+
+document.getElementById("fileInput").addEventListener("change", function(){
+    document.getElementById("original_filename").value = this.files[0].name;
+});
+
+/* ================= FLASH FUNCTION ================= */
+
+function showFlash(message, type="success") {
+
+    let box = document.getElementById("flash-message");
+
+    if (!box) {
+        box = document.createElement("div");
+        box.id = "flash-message";
+        document.body.appendChild(box);
+    }
+
+    box.innerText = message;
+    box.style.display = "block";
+
+    box.style.position = "fixed";
+    box.style.top = "20px";
+    box.style.right = "20px";
+    box.style.padding = "12px 20px";
+    box.style.borderRadius = "8px";
+    box.style.color = "white";
+    box.style.fontWeight = "500";
+    box.style.zIndex = "9999";
+    box.style.boxShadow = "0 5px 20px rgba(0,0,0,0.2)";
+
+    if(type === "error"){
+        box.style.background = "#ef4444";  // red
+    } else {
+        box.style.background = "#22c55e";  // green
+    }
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 3000);
+}
+
+/* ================= BASE64 ================= */
+
+function arrayBufferToBase64(buffer) {
+    let binary = "";
+    let bytes = new Uint8Array(buffer);
+
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
+/* ================= ENCRYPTION ================= */
+
+async function encryptFile(file, publicKeyBase64){
+
+    const fileBuffer = await file.arrayBuffer();
+
+    const aesKey = await crypto.subtle.generateKey(
+        {name:"AES-GCM", length:256},
+        true,
+        ["encrypt","decrypt"]
+    );
+
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+    const encryptedData = await crypto.subtle.encrypt(
+        {name:"AES-GCM", iv:iv},
+        aesKey,
+        fileBuffer
+    );
+
+    const encryptedFile = new Uint8Array(iv.length + encryptedData.byteLength);
+    encryptedFile.set(iv, 0);
+    encryptedFile.set(new Uint8Array(encryptedData), iv.length);
+
+    const exportedKey = await crypto.subtle.exportKey("raw", aesKey);
+
+    const publicKey = await crypto.subtle.importKey(
+        "spki",
+        Uint8Array.from(atob(publicKeyBase64), c => c.charCodeAt(0)),
+        {name:"RSA-OAEP", hash:"SHA-256"},
+        false,
+        ["encrypt"]
+    );
+
+    const encryptedAES = await crypto.subtle.encrypt(
+        {name:"RSA-OAEP"},
+        publicKey,
+        exportedKey
+    );
+
+    return {
+        encryptedFile: encryptedFile.buffer,
+        encryptedAES: encryptedAES
+    };
+}
+
+/* ================= SUBMIT ================= */
+
+form.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const file = document.getElementById("fileInput").files[0];
+    const duration = document.querySelector("select[name='duration']").value;
+
+    if(!file || !duration){
+        showFlash("Select file and duration", "error");
+        return;
+    }
+
+    const publicKey = `{{ public_key }}`.replace(/\s+/g,'');
+    const uploadStart = performance.now();
+
+    try {
+
+        const encrypted = await encryptFile(file, publicKey);
+
+        const encryptedFileBase64 = arrayBufferToBase64(encrypted.encryptedFile);
+        const encryptedAESBase64 = arrayBufferToBase64(encrypted.encryptedAES);
+
+        const response = await fetch("/upload", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                encrypted_file: encryptedFileBase64,
+                encrypted_aes_key: encryptedAESBase64,
+                duration: duration,
+                original_filename: file.name,
+                original_size_bytes: file.size
+            })
+        });
+
+        const result = await response.json();
+
+        if(result.success){
+
+            const uploadMs = performance.now() - uploadStart;
+            const fileSizeMb = file.size / (1024 * 1024);
+
+            try {
+                await fetch("/metrics/client", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        metric_name: "upload_total",
+                        mode: "encrypted",
+                        duration_ms: uploadMs,
+                        file_size_mb: fileSizeMb
+                    })
+                });
+            } catch(metricErr) {
+                console.warn("Upload metric failed:", metricErr);
+            }
+
+            showFlash("File uploaded securely!", "success");
+
+            setTimeout(() => {
+                window.location.href = "/files";
+            }, 1500);
+
+        } else {
+
+            showFlash(result.error || "Upload failed", "error");
+
+        }
+
+    } catch(err){
+        console.error(err);
+        showFlash("Encryption failed", "error");
+    }
+});
+});
+
+</script>
+
+</body>
+</html>

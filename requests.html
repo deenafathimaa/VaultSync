@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VaultSync | Access Requests</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <!-- <a href="/requests" class="active">Requests</a> -->
+    <!-- <a href="/notifications">Notifications</a> -->
+    <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<div class="main-content">
+
+<div class="topbar">
+    <h1>Access Requests</h1>
+</div>
+
+<div class="files-grid">
+{% for req in requests %}
+<!-- <div class="file-card"> -->
+    <div class="file-card" id="req-{{ req[0] }}">
+
+    <h3>
+        <span style="color:#ff5c5c">{{ req[1] }}</span>
+        requested access to
+        <strong>{{ req[2] }}</strong>
+    </h3>
+
+    <div class="file-actions">
+        <button class="icon-btn approve" onclick="approveRequest({{ req[0] }})">✔</button>
+        <button class="icon-btn reject" onclick="rejectRequest({{ req[0] }})">✖</button>
+    </div>
+
+</div>
+{% endfor %}
+</div>
+
+<p id="noRequestsMessage" style="display:none; text-align:center; opacity:0.75; margin-top:24px;">
+    No pending requests.
+</p>
+
+</div>
+
+<div id="customModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Status</h2>
+        <p id="modalMessage"></p>
+
+        <button onclick="closeModal()" class="modal-share-btn">
+            OK
+        </button>
+    </div>
+</div>
+
+<script>
+
+function showModal(message, title="Status"){
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalMessage").innerText = message;
+    document.getElementById("customModal").style.display = "flex";
+}
+
+function closeModal(){
+    document.getElementById("customModal").style.display = "none";
+}
+
+function base64ToArrayBuffer(base64){
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++){
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+function arrayBufferToBase64(buffer){
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for(let i=0;i<bytes.length;i++){
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+async function importPublicKey(pem){
+    const clean = pem.replace(/-----.*?-----/g, "").replace(/\s/g, "");
+    const binary = base64ToArrayBuffer(clean);
+
+    return await crypto.subtle.importKey(
+        "spki",
+        binary,
+        {name:"RSA-OAEP", hash:"SHA-256"},
+        false,
+        ["encrypt"]
+    );
+}
+
+async function importPrivateKey(base64Key){
+    return await crypto.subtle.importKey(
+        "pkcs8",
+        base64ToArrayBuffer(base64Key),
+        {name:"RSA-OAEP", hash:"SHA-256"},
+        false,
+        ["decrypt"]
+    );
+}
+
+//////////////////////////////////////////////////////////
+// 🔐 AES FUNCTIONS
+//////////////////////////////////////////////////////////
+
+async function encryptAES(dataBuffer, aesKey){
+
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+    const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        aesKey,
+        dataBuffer
+    );
+
+    const result = new Uint8Array(iv.length + encrypted.byteLength);
+    result.set(iv, 0);
+    result.set(new Uint8Array(encrypted), iv.length);
+
+    // ✅ ALWAYS RETURN BASE64 STRING
+    return arrayBufferToBase64(result);
+}
+
+async function decryptAES(encryptedBase64, aesKey){
+
+    const encryptedBuffer = base64ToArrayBuffer(encryptedBase64);
+
+    const iv = encryptedBuffer.slice(0, 12);
+    const data = encryptedBuffer.slice(12);
+
+    const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        aesKey,
+        data
+    );
+
+    return decrypted;
+}
+
+// async function approveRequest(req_id){
+
+//     try {
+
+//         // STEP 1: get AES key + public key
+//         const res = await fetch(`/approve_request/${req_id}`, {method:"POST"});
+//         const data = await res.json();
+
+//         if(!data.success){
+//             showToast(data.error, "error");
+//             return;
+//         }
+
+//         const encryptedAES = base64ToArrayBuffer(data.encrypted_aes_key);
+
+//         const privateKeyBase64 = sessionStorage.getItem("private_key");
+
+//         if(!privateKeyBase64){
+//             showToast("Private key missing", "error");
+//             return;
+//         }
+
+//         // STEP 2: decrypt AES using owner private key
+//         const privateKey = await crypto.subtle.importKey(
+//             "pkcs8",
+//             base64ToArrayBuffer(privateKeyBase64),
+//             {name:"RSA-OAEP", hash:"SHA-256"},
+//             false,
+//             ["decrypt"]
+//         );
+
+//         const aesRaw = await crypto.subtle.decrypt(
+//             {name:"RSA-OAEP"},
+//             privateKey,
+//             encryptedAES
+//         );
+
+//         // STEP 3: encrypt AES for requester
+//         const publicKey = await importPublicKey(data.public_key);
+
+//         const encryptedForRequester = await crypto.subtle.encrypt(
+//             {name:"RSA-OAEP"},
+//             publicKey,
+//             aesRaw
+//         );
+
+//         // STEP 4: send back to backend
+//         const saveRes = await fetch(`/save_reaccess/${req_id}`, {
+//             method:"POST",
+//             headers:{"Content-Type":"application/json"},
+//             body: JSON.stringify({
+//                 encrypted_key: arrayBufferToBase64(encryptedForRequester)
+//             })
+//         });
+
+//         const result = await saveRes.json();
+
+//         if(result.success){
+//             showToast("Access Granted", "success");
+
+//             // remove request card
+//             const card = document.getElementById("req-"+req_id);
+//             if(card) card.remove();
+//         } else {
+//             showToast(result.error, "error");
+//         }
+
+//     } catch(err){
+//         console.error(err);
+//         showToast("Something went wrong", "error");
+//     }
+// }
+
+
+
+
+async function approveRequest(req_id){
+    const start = performance.now();
+
+    try {
+
+        // STEP 1: get AES + public key
+        const res = await fetch(`/approve_request/${req_id}`, {method:"POST"});
+        const data = await res.json();
+
+        if(!data.success){
+            showToast(data.error, "error");
+            return;
+        }
+
+        const encryptedAES = base64ToArrayBuffer(data.encrypted_aes_key);
+
+        const privateKeyBase64 = sessionStorage.getItem("private_key");
+
+        if(!privateKeyBase64){
+            showToast("Private key missing", "error");
+            return;
+        }
+
+        // STEP 2: decrypt AES
+        const privateKey = await crypto.subtle.importKey(
+            "pkcs8",
+            base64ToArrayBuffer(privateKeyBase64),
+            {name:"RSA-OAEP", hash:"SHA-256"},
+            false,
+            ["decrypt"]
+        );
+
+        const aesRaw = await crypto.subtle.decrypt(
+            {name:"RSA-OAEP"},
+            privateKey,
+            encryptedAES
+        );
+
+        // STEP 3: encrypt for requester
+        const publicKey = await importPublicKey(data.public_key);
+
+        const encryptedForRequester = await crypto.subtle.encrypt(
+            {name:"RSA-OAEP"},
+            publicKey,
+            aesRaw
+        );
+
+        // STEP 4: send to backend
+        const saveRes = await fetch(`/save_reaccess/${req_id}`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({
+                encrypted_key: arrayBufferToBase64(encryptedForRequester)
+            })
+        });
+
+        const result = await saveRes.json();
+
+        if(result.success){
+            showToast("Access Granted", "success");
+
+            removeRequestCard(req_id);
+
+            const totalMs = performance.now() - start;
+            fetch("/metrics/client", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    metric_name: "approve_total",
+                    mode: "encrypted",
+                    duration_ms: totalMs,
+                    file_id: data.file_id,
+                    file_size_mb: null
+                })
+            }).catch(err => console.warn("Failed to log approve_total metric:", err));
+        } else {
+            showToast(result.error, "error");
+        }
+
+    } catch(err){
+        console.error("APPROVE ERROR:", err);
+        showToast("Something went wrong", "error");
+    }
+}
+
+//////////////////////////////////////////////////////////
+// ❌ REJECT
+//////////////////////////////////////////////////////////
+async function rejectRequest(id){
+    const res = await fetch(`/reject_request/${id}`, {method:"POST"});
+    const data = await res.json();
+
+    if(data.success){
+        showToast("Access Rejected", "error");
+        removeRequestCard(id);
+    } else {
+        showToast("Error rejecting", "error");
+    }
+}
+
+function removeRequestCard(reqId){
+    const card = document.getElementById("req-" + reqId);
+    if(card){
+        card.remove();
+    }
+
+    const remainingCards = document.querySelectorAll(".file-card[id^='req-']");
+    if(remainingCards.length === 0){
+        const emptyMessage = document.getElementById("noRequestsMessage");
+        if(emptyMessage){
+            emptyMessage.style.display = "block";
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////
+// 🔔 TOAST
+//////////////////////////////////////////////////////////
+function showToast(msg, type){
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerText = msg;
+
+    document.body.appendChild(toast);
+
+    setTimeout(()=>{
+        toast.classList.add("hide");
+        setTimeout(()=>toast.remove(),500);
+    },2000);
+}
+
+</script>
+
+</body>
+</html>

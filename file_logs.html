@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+     <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<div class="main-content">
+
+<div class="topbar">
+    <h1>Access Logs</h1>
+    <p style="opacity:0.6;">{{ filename }}</p>
+</div>
+
+<div class="files-grid">
+
+{% for log in logs %}
+<div class="file-card">
+
+    <h3>
+        <span style="color:#4caf50;">{{ log[0] }}</span>
+        → {{ log[1] }}
+    </h3>
+
+    <p>{{ log[2] }}</p>
+
+</div>
+{% endfor %}
+
+</div>
+
+</div>
+
+</body>
+</html>

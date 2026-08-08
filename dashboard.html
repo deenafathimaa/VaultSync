@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VaultSync | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <!-- <a href="/logout" onclick="sessionStorage.removeItem('private_key')">Logout</a> -->
+     <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<div class="main-content">
+
+<div class="topbar">
+<h1>Dashboard</h1>
+<div class="user-info">Welcome, {{ username }}</div>
+</div>
+
+<div class="dashboard-cards">
+
+<a href="/upload" class="dashboard-card">
+<div class="card-icon">⬆</div>
+<h3>Upload File</h3>
+<p>Share with time-limited access</p>
+</a>
+
+<a href="/files" class="dashboard-card">
+<div class="card-icon">📂</div>
+<h3>My Files</h3>
+<p>View & manage your uploads</p>
+</a>
+
+<a href="/shared" class="dashboard-card">
+<div class="card-icon">🔗</div>
+<h3>Shared With Me</h3>
+<p>View files shared with you</p>
+</a>
+
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="toast-container">
+{% for category, message in messages %}
+<div class="toast {{ category }}">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+</div>
+
+<!-- 🔐 PRIVATE KEY UNLOCK MODAL -->
+<div id="unlockModal" class="modal-overlay">
+    <div class="popup-box"> <!-- ✅ use popup-box -->
+
+        <h2>Unlock Private Key</h2>
+        <p>Enter your password to continue</p>
+
+        <div class="input-group">
+            <input type="password" id="unlockPassword" placeholder="Password">
+
+            <span class="toggle-password" onclick="togglePassword('unlockPassword', this)">
+                <svg width="22" height="22" fill="none" stroke="white" stroke-width="2"
+                     viewBox="0 0 24 24">
+                    <path class="eyeSlash" d="M1 1l22 22"/>
+                    <path d="M17.94 17.94A10.94 10.94 0 0112 19C5 19 1 12 1 12a21.82 21.82 0 015.17-6.53M9.88 4.24A10.94 10.94 0 0112 5c7 0 11 7 11 7a21.82 21.82 0 01-4.35 5.77"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </span>
+        </div>
+
+        <button onclick="unlockKey()">Unlock</button>
+
+    </div>
+</div>
+
+<script>
+
+document.getElementById("unlockPassword").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        unlockKey();
+    }
+});
+
+function togglePassword(inputId, el) {
+
+    const input = document.getElementById(inputId);
+    const slash = el.querySelector(".eyeSlash");
+
+    if (input.type === "password") {
+        input.type = "text";
+        if (slash) slash.style.display = "none";
+    } else {
+        input.type = "password";
+        if (slash) slash.style.display = "block";
+    }
+}
+
+function showToast(message, category = "success") {
+
+    let container = document.querySelector(".toast-container");
+
+    if (!container) {
+        container = document.createElement("div");
+        container.className = "toast-container";
+        document.body.appendChild(container); // ✅ IMPORTANT (not main-content)
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${category}`;
+    toast.innerText = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+setTimeout(function() {
+const toasts = document.querySelectorAll(".toast");
+toasts.forEach(function(toast) {
+toast.classList.add("hide");
+setTimeout(() => toast.remove(), 500);
+});
+},3000);
+
+function base64ToArrayBuffer(base64){
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++){
+        bytes[i]=binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+function arrayBufferToBase64(buffer){
+    let binary="";
+    const bytes=new Uint8Array(buffer);
+    for(let i=0;i<bytes.byteLength;i++){
+        binary+=String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+/* 🔐 SHOW MODAL ONLY IF KEY NOT PRESENT */
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = document.getElementById("unlockModal");
+
+    if (!sessionStorage.getItem("private_key")) {
+        modal.style.display = "flex";
+
+        // 🔒 LOCK SCROLL + UI
+        document.body.style.overflow = "hidden";
+    } else {
+        modal.style.display = "none";
+    }
+
+});
+
+/* 🔐 UNLOCK FUNCTION */
+async function unlockKey(){
+
+    const password = document.getElementById("unlockPassword").value;
+
+    if(!password){
+        showToast("Enter password", "error");
+        return;
+    }
+
+    const encryptedPrivateKey = "{{ encrypted_private_key }}";
+    const ivBase64 = "{{ private_key_iv }}";
+
+    try {
+
+        const enc = new TextEncoder();
+
+        const passwordKey = await crypto.subtle.importKey(
+            "raw",
+            enc.encode(password),
+            "PBKDF2",
+            false,
+            ["deriveKey"]
+        );
+
+        const aesKey = await crypto.subtle.deriveKey(
+            {
+                name:"PBKDF2",
+                salt:enc.encode("vaultsync_salt"),
+                iterations:100000,
+                hash:"SHA-256"
+            },
+            passwordKey,
+            {name:"AES-GCM",length:256},
+            false,
+            ["decrypt"]
+        );
+
+        const decrypted = await crypto.subtle.decrypt(
+            {
+                name:"AES-GCM",
+                iv:new Uint8Array(base64ToArrayBuffer(ivBase64))
+            },
+            aesKey,
+            base64ToArrayBuffer(encryptedPrivateKey)
+        );
+
+        const privateKeyBase64 = arrayBufferToBase64(decrypted);
+
+        sessionStorage.setItem("private_key", privateKeyBase64);
+        showToast("Private key unlocked","success");
+
+        // ✅ CLOSE MODAL
+        document.getElementById("unlockModal").style.display = "none";
+
+    } catch(err){
+
+        showToast("Wrong password!", "error");
+
+        // ❗ DO NOT PROCEED
+        sessionStorage.removeItem("private_key");
+
+    }
+}
+
+// unlockKey();
+</script>
+</body>
+</html>

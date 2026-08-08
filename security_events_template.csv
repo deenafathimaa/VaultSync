@@ -1,0 +1,5 @@
+event,count
+successful_access,17
+denied_access,0
+expired_access,0
+rejected_access,2

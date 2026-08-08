@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Files</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="sidebar">
+    <h2>VaultSync</h2>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload File</a>
+    <a href="/files">My Files</a>
+    <a href="/shared">Shared With Me</a>
+    <!-- <a href="/change-password">Change Password</a> -->
+    <a href="/logout" onclick="sessionStorage.clear()">Logout</a>
+</div>
+
+<div class="main-content">
+
+    <div class="topbar">
+        <h1>My Files</h1>
+        <!-- <div class="user-info">Welcome, {{ username }}</div> -->
+    </div>
+
+    <!-- FLASH POPUP -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="toast-container">
+            {% for category, message in messages %}
+              <div class="toast {{ category }}">
+                  {{ message }}
+              </div>
+            {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="files-grid">
+    {% for file in files %}
+        <div class="file-card">
+
+            <h3 title="{{ file[2] }}">{{ file[2] }}</h3>
+            <!-- <p>Access Expires on : {{ file[3] }}</p> -->
+
+            <div class="file-actions">
+
+                <button class="icon-btn"
+                    onclick="openDownloadModal({{ file[0] }})"
+                    title="Download">
+                     ⬇
+                </button>
+
+<button class="icon-btn"
+        onclick="window.location.href='/share/{{ file[0] }}'"
+        title="Share">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="18"
+         height="18"
+         viewBox="0 0 24 24"
+         fill="currentColor">
+
+        <circle cx="18" cy="5" r="3"/>
+        <circle cx="6" cy="12" r="3"/>
+        <circle cx="18" cy="19" r="3"/>
+
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"
+              stroke="currentColor"
+              stroke-width="2"/>
+
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"
+              stroke="currentColor"
+              stroke-width="2"/>
+    </svg>
+
+</button>
+
+  <button class="icon-btn delete-btn"
+        onclick="openDeleteModal({{ file[0] }})"
+        title="Delete">
+    🗑
+</button>
+
+<button class="icon-btn"
+    onclick="window.location.href='/file_logs/{{ file[0] }}'"
+    title="View Logs">
+    <img src="{{ url_for('static', filename='files.png') }}" alt="View Logs" style="width:18px; height:18px; object-fit:contain;">
+</button>
+
+
+        <!-- <button class="icon-btn"
+            onclick="reenableFile({{ file[0] }})"
+            title="Re-enable Access">
+            ♻
+        </button> -->
+
+        {% if file[4] > 0 %}
+            <!-- <div class="request-info">
+                {{ file[4] }} request(s)
+            </div> -->
+
+            <div class="request-info">
+                <span class="bell-icon" onclick="window.location.href='/requests?file_id={{ file[0] }}'" title="Requests">🔔</span>
+                <span class="count">{{ file[4] }}</span>
+            </div>
+
+            <!-- <button class="icon-btn"
+                onclick="reenableFile({{ file[0] }})"
+                title="Re-enable">
+                ♻
+            </button> -->
+        {% endif %}
+            
+
+            </div>
+
+        </div>
+    
+    {% endfor %}
+    </div>
+
+</div>
+
+<!-- ================= MODAL ================= -->
+<!-- DELETE MODAL -->
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+
+        <span class="close-modal" onclick="closeDeleteModal()">×</span>
+        <h2>Delete File</h2>
+        <p>Are you sure you want to delete this file?</p>
+
+        <form id="deleteForm" method="POST">
+            <div style="display:flex; gap:15px; margin-top:20px;">
+                <button type="button" 
+                        onclick="closeDeleteModal()" 
+                        class="modal-share-btn"
+                        style="background:#44444E;">
+                    Cancel
+                </button>
+
+                <button type="submit" 
+                        class="modal-share-btn"
+                        style="background:#b04a4a;">
+                    Delete
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- DOWNLOAD MODAL -->
+
+<div id="downloadModal" class="modal">
+    <div class="modal-content">
+
+        <span class="close-modal" onclick="closeDownloadModal()">×</span>
+        <h2>Download File</h2>
+        <p>Do you want to download this file?</p>
+
+        <div style="display:flex; gap:15px; margin-top:20px;">
+            <button onclick="closeDownloadModal()"
+                    class="modal-share-btn"
+                    style="background:#44444E;">
+                Cancel
+            </button>
+
+            <button id="confirmDownload"
+                    class="modal-share-btn">
+                Download
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- CUSTOM ALERT FOR RE-ENABLE ACCESS -->
+<div id="customAlert" class="modal">
+    <div class="modal-content">
+        <h2 id="alertTitle">Enable Access</h2>
+        <p id="alertMessage"></p>
+
+        <button onclick="closeAlert()" class="modal-share-btn">
+            OK
+        </button>
+    </div>
+</div>
+<!-- JS -->
+
+<script>
+
+// async function reenableFile(fileId){
+
+//     try {
+
+//         // 1. Get users who need access
+//         const res = await fetch(`/reenable/${fileId}`, {method:"POST"});
+//         const data = await res.json();
+
+//         if(data.error){
+//             showToast(data.error, "error");
+//             return;
+//         }
+
+//         const users = data.users;
+
+//         // 2. Download encrypted file
+//         const fileRes = await fetch("/download/"+fileId);
+//         const fileData = await fileRes.json();
+
+//         const encryptedFile = base64ToArrayBuffer(fileData.encrypted_file);
+//         const encryptedAES = base64ToArrayBuffer(fileData.encrypted_aes_key);
+
+//         const privateKeyBase64 = sessionStorage.getItem("private_key");
+
+//         if(!privateKeyBase64){
+//             showToast("Private key missing. Please login again.", "error");
+//             return;
+//         }
+
+//         const privateKey = await crypto.subtle.importKey(
+//             "pkcs8",
+//             base64ToArrayBuffer(privateKeyBase64),
+//             {name:"RSA-OAEP",hash:"SHA-256"},
+//             false,
+//             ["decrypt"]
+//         );
+
+//         // 3. Decrypt AES key
+//         const aesRaw = await crypto.subtle.decrypt(
+//             {name:"RSA-OAEP"},
+//             privateKey,
+//             encryptedAES
+//         );
+
+//         const aesKey = await crypto.subtle.importKey(
+//             "raw", aesRaw, {name:"AES-GCM"}, false, ["decrypt"]
+//         );
+
+//         // 4. Decrypt file
+//         const iv = encryptedFile.slice(0,12);
+//         const fileDataRaw = encryptedFile.slice(12);
+
+//         const decrypted = await crypto.subtle.decrypt(
+//             {name:"AES-GCM", iv:iv},
+//             aesKey,
+//             fileDataRaw
+//         );
+
+//         // 5. Generate NEW AES key
+//         const newAES = await crypto.subtle.generateKey(
+//             {name:"AES-GCM", length:256},
+//             true,
+//             ["encrypt"]
+//         );
+
+//         const newIV = crypto.getRandomValues(new Uint8Array(12));
+
+//         const newEncrypted = await crypto.subtle.encrypt(
+//             {name:"AES-GCM", iv:newIV},
+//             newAES,
+//             decrypted
+//         );
+
+//         const finalFile = new Uint8Array(newIV.length + newEncrypted.byteLength);
+//         finalFile.set(newIV,0);
+//         finalFile.set(new Uint8Array(newEncrypted),newIV.length);
+
+//         const exportedKey = await crypto.subtle.exportKey("raw", newAES);
+
+//         // 6. Encrypt AES for each user
+//         const keys = [];
+
+//         for(let uid of users){
+
+//             const pubRes = await fetch(`/get_public_key/${uid}`);
+//             const pubData = await pubRes.json();
+
+//             const publicKeyPem = pubData.public_key;
+
+//             const publicKey = await importPublicKey(publicKeyPem);
+
+//             const encryptedKey = await crypto.subtle.encrypt(
+//                 {name:"RSA-OAEP"},
+//                 publicKey,
+//                 exportedKey
+//             );
+
+//             keys.push({
+//                 user_id: uid,
+//                 encrypted_key: arrayBufferToBase64(encryptedKey)
+//             });
+//         }
+
+//         // 7. Send to backend
+//         await fetch(`/rotate_keys/${fileId}`,{
+//             method:"POST",
+//             headers:{"Content-Type":"application/json"},
+//             body:JSON.stringify({
+//                 encrypted_file: arrayBufferToBase64(finalFile),
+//                 keys: keys
+//             })
+//         });
+
+//         showToast("Access restored successfully", "success");
+//         // closeAlert();
+
+//     } catch(err){
+//         console.error(err);
+//         showToast("Something went wrong","error");
+//     }
+// }
+
+async function importPublicKey(pem){
+
+    const base64 = pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\s+/g,'');
+
+    const binaryDer = base64ToArrayBuffer(base64);
+
+    return await crypto.subtle.importKey(
+        "spki",
+        binaryDer,
+        {name:"RSA-OAEP",hash:"SHA-256"},
+        false,
+        ["encrypt"]
+    );
+}
+
+let currentDownloadFileId = null;
+
+/* ================= SHARE MODAL ================= */
+
+const shareModal = document.getElementById("shareModal");
+const shareForm = document.getElementById("shareForm");
+
+if (shareModal && shareForm) {
+    document.querySelectorAll(".share-trigger").forEach(button => {
+        button.addEventListener("click", function() {
+            const fileId = this.getAttribute("data-file-id");
+            shareForm.action = "/share/" + fileId;
+            shareModal.style.display = "flex";
+        });
+    });
+}
+
+function closeShareModal() {
+    if (shareModal) {
+        shareModal.style.display = "none";
+    }
+}
+
+
+/* ================= DELETE MODAL ================= */
+
+function openDeleteModal(fileId) {
+    const modal = document.getElementById("deleteModal");
+    const form = document.getElementById("deleteForm");
+
+    form.action = "/delete/" + fileId;
+    modal.style.display = "flex";
+}
+
+function closeDeleteModal() {
+    document.getElementById("deleteModal").style.display = "none";
+}
+
+
+/* ================= DOWNLOAD MODAL ================= */
+
+function openDownloadModal(fileId) {
+
+    currentDownloadFileId = fileId;
+
+    const modal = document.getElementById("downloadModal");
+
+    modal.style.display = "flex";
+}
+
+document.getElementById("confirmDownload").onclick = function(){
+
+    decryptAndDownload(currentDownloadFileId);
+
+    closeDownloadModal();
+};
+
+function closeDownloadModal() {
+    document.getElementById("downloadModal").style.display = "none";
+}
+
+/* ================= CUSTOM ALERT FOR RE-ENABLE ACCESS ================= */
+function showToast(message, type="success"){
+    document.getElementById("alertMessage").innerText = message;
+    document.getElementById("customAlert").style.display = "flex";
+}
+
+function closeAlert(){
+    document.getElementById("customAlert").style.display = "none";
+}
+
+
+/* ================= DECRYPT DOWNLOAD ================= */
+
+async function decryptAndDownload(fileId){
+
+const downloadStart = performance.now();
+
+const response=await fetch("/download/"+fileId);
+
+const data=await response.json();
+
+if(data.error){
+    showToast(data.error, "error");
+    return;
+}
+
+const encryptedFile=base64ToArrayBuffer(data.encrypted_file);
+const encryptedAES=base64ToArrayBuffer(data.encrypted_aes_key);
+
+const privateKeyBase64=sessionStorage.getItem("private_key");
+
+if(!privateKeyBase64){
+    showToast("Private key missing. Please login again.", "error");
+    return;
+}
+
+const privateKey=await crypto.subtle.importKey(
+"pkcs8",
+base64ToArrayBuffer(privateKeyBase64),
+{name:"RSA-OAEP",hash:"SHA-256"},
+false,
+["decrypt"]
+);
+
+const aesKeyRaw=await crypto.subtle.decrypt(
+{name:"RSA-OAEP"},
+privateKey,
+encryptedAES
+);
+
+const aesKey=await crypto.subtle.importKey(
+"raw",
+aesKeyRaw,
+{name:"AES-GCM"},
+false,
+["decrypt"]
+);
+
+const iv=encryptedFile.slice(0,12);
+const fileData=encryptedFile.slice(12);
+
+const decrypted=await crypto.subtle.decrypt(
+{name:"AES-GCM",iv:iv},
+aesKey,
+fileData
+);
+
+const blob=new Blob([decrypted]);
+
+const link=document.createElement("a");
+
+link.href=URL.createObjectURL(blob);
+// link.download=data.filename;
+link.download = data.filename || "downloaded_file";
+link.click();
+
+const totalMs = performance.now() - downloadStart;
+const fileSizeMb = blob.size / (1024 * 1024);
+
+postClientMetric("download_open_total", "encrypted", totalMs, fileSizeMb, fileId);
+}
+
+async function postClientMetric(metricName, mode, durationMs, fileSizeMb, fileId){
+try {
+    await fetch("/metrics/client", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            metric_name: metricName,
+            mode: mode,
+            duration_ms: durationMs,
+            file_size_mb: fileSizeMb,
+            file_id: fileId
+        })
+    });
+} catch (err) {
+    console.warn("Metric post failed:", err);
+}
+}
+
+
+/* ================= SHARE FILE (E2EE) ================= */
+
+async function shareEncryptedKey(fileId, recipientId, recipientPublicKey){
+
+const response = await fetch("/get_aes_key/"+fileId);
+const data = await response.json();
+
+const encryptedAES = base64ToArrayBuffer(data.encrypted_aes_key);
+
+const privateKeyBase64 = sessionStorage.getItem("private_key");
+
+if(!privateKeyBase64){
+    showToast("Private key missing. Please login again.", "error");
+    return;
+}
+
+const privateKey = await crypto.subtle.importKey(
+"pkcs8",
+base64ToArrayBuffer(privateKeyBase64),
+{name:"RSA-OAEP",hash:"SHA-256"},
+false,
+["decrypt"]
+);
+
+const aesRaw = await crypto.subtle.decrypt(
+{name:"RSA-OAEP"},
+privateKey,
+encryptedAES
+);
+
+const publicKey = await crypto.subtle.importKey(
+"spki",
+base64ToArrayBuffer(recipientPublicKey),
+{name:"RSA-OAEP",hash:"SHA-256"},
+false,
+["encrypt"]
+);
+
+const encryptedForRecipient = await crypto.subtle.encrypt(
+{name:"RSA-OAEP"},
+publicKey,
+aesRaw
+);
+
+await fetch("/share/"+fileId,{
+method:"POST",
+headers:{
+"Content-Type":"application/x-www-form-urlencoded"
+},
+body:new URLSearchParams({
+recipient_id:recipientId,
+encrypted_aes_key:arrayBufferToBase64(encryptedForRecipient)
+})
+});
+
+showToast("File shared securely", "success");
+
+}
+
+
+/* ================= SHARE FORM SUBMIT ================= */
+
+if (shareForm) {
+shareForm.addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+const fileId = shareForm.action.split("/").pop();
+
+const selectedUser = document.querySelector("input[name='user_ids']:checked");
+
+if(!selectedUser){
+showToast("Select a user", "error");
+return;
+}
+
+const recipientId = selectedUser.value;
+const recipientPublicKey = selectedUser.dataset.publickey;
+
+await shareEncryptedKey(fileId, recipientId, recipientPublicKey);
+
+closeShareModal();
+
+});
+}
+
+
+/* ================= HELPERS ================= */
+
+function base64ToArrayBuffer(base64){
+const binary=atob(base64);
+const bytes=new Uint8Array(binary.length);
+for(let i=0;i<binary.length;i++){
+bytes[i]=binary.charCodeAt(i);
+}
+return bytes.buffer;
+}
+
+function arrayBufferToBase64(buffer){
+let binary="";
+const bytes=new Uint8Array(buffer);
+for(let i=0;i<bytes.byteLength;i++){
+binary+=String.fromCharCode(bytes[i]);
+}
+return btoa(binary);
+}
+
+
+/* ================= CLOSE ON OUTSIDE CLICK ================= */
+
+window.addEventListener("click", function(event) {
+    if (event.target.classList.contains("modal")) {
+        event.target.style.display = "none";
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const toasts = document.querySelectorAll(".toast");
+
+    if (toasts.length > 0) {
+
+        toasts.forEach((toast, index) => {
+
+            setTimeout(() => {
+
+                // fade out
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(-20px)";
+
+                // remove from DOM
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+
+            }, 3000 + (index * 200)); // stagger if multiple
+
+        });
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

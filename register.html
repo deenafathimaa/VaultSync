@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>VaultSync | Register</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+
+<div class="login-container">
+<div class="login-card">
+
+<h2>Create Account</h2>
+<p class="subtitle">Join VaultSync Secure Platform</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="toast-container">
+{% for category, message in messages %}
+<div class="toast {{ category }}">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<form method="POST" id="registerForm">
+
+<div class="input-group">
+<input type="text" name="username" placeholder="Username" required>
+</div>
+
+<div class="input-group">
+
+<input type="password" name="password" id="regPassword" placeholder="Password" required>
+
+<span class="toggle-password" onclick="toggleRegPassword()">
+<svg width="22" height="22" fill="none" stroke="white" stroke-width="2"
+viewBox="0 0 24 24">
+<path id="regEyeSlash" d="M1 1l22 22"/>
+<path d="M17.94 17.94A10.94 10.94 0 0112 19C5 19 1 12 1 12a21.82 21.82 0 015.17-6.53M9.88 4.24A10.94 10.94 0 0112 5c7 0 11 7 11 7a21.82 21.82 0 01-4.35 5.77"/>
+<circle cx="12" cy="12" r="3"/>
+</svg>
+</span>
+
+</div>
+
+<!-- Hidden encryption fields -->
+<input type="hidden" name="public_key" id="public_key">
+<input type="hidden" name="encrypted_private_key" id="encrypted_private_key">
+<input type="hidden" name="private_key_iv" id="private_key_iv">
+
+<button type="submit">REGISTER</button>
+
+</form>
+
+<div class="login-links">
+<a href="/login">Already have account? Login</a>
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* PASSWORD TOGGLE */
+
+function toggleRegPassword(){
+
+const passwordField=document.getElementById("regPassword");
+const slash=document.getElementById("regEyeSlash");
+
+if(passwordField.type==="password"){
+passwordField.type="text";
+slash.style.display="none";
+}
+else{
+passwordField.type="password";
+slash.style.display="block";
+}
+
+}
+
+
+/* ================= CRYPTO FUNCTIONS ================= */
+
+function arrayBufferToBase64(buffer){
+
+let binary="";
+let bytes=new Uint8Array(buffer);
+
+for(let i=0;i<bytes.byteLength;i++){
+binary+=String.fromCharCode(bytes[i]);
+}
+
+return window.btoa(binary);
+
+}
+
+
+/* PBKDF2 PASSWORD KEY */
+
+async function deriveKey(password){
+
+const enc=new TextEncoder();
+
+const keyMaterial=await crypto.subtle.importKey(
+"raw",
+enc.encode(password),
+"PBKDF2",
+false,
+["deriveKey"]
+);
+
+return crypto.subtle.deriveKey(
+{
+name:"PBKDF2",
+salt:enc.encode("vaultsync_salt"),
+iterations:100000,
+hash:"SHA-256"
+},
+keyMaterial,
+{name:"AES-GCM",length:256},
+true,
+["encrypt","decrypt"]
+);
+
+}
+
+
+/* ENCRYPT PRIVATE KEY */
+
+async function encryptPrivateKey(privateKey,password){
+
+const aesKey=await deriveKey(password);
+
+const iv=crypto.getRandomValues(new Uint8Array(12));
+
+const encrypted=await crypto.subtle.encrypt(
+{name:"AES-GCM",iv:iv},
+aesKey,
+privateKey
+);
+
+return {encryptedKey:encrypted,iv:iv};
+
+}
+
+
+/* ================= KEY GENERATION ================= */
+
+async function generateKeys(password){
+    
+
+/* IMPORTANT: this runs EVERY registration */
+
+const keyPair=await crypto.subtle.generateKey(
+{
+name:"RSA-OAEP",
+modulusLength:2048,
+publicExponent:new Uint8Array([1,0,1]),
+hash:"SHA-256"
+},
+true,
+["encrypt","decrypt"]
+);
+
+
+/* EXPORT KEYS */
+
+const publicKey=await crypto.subtle.exportKey("spki",keyPair.publicKey);
+
+const privateKey=await crypto.subtle.exportKey("pkcs8",keyPair.privateKey);
+
+
+/* ENCRYPT PRIVATE KEY */
+
+const encrypted=await encryptPrivateKey(privateKey,password);
+
+
+/* STORE IN HIDDEN FIELDS */
+
+document.getElementById("public_key").value=arrayBufferToBase64(publicKey);
+
+document.getElementById("encrypted_private_key").value=arrayBufferToBase64(encrypted.encryptedKey);
+
+document.getElementById("private_key_iv").value=arrayBufferToBase64(encrypted.iv);
+
+}
+
+
+
+/* ================= FORM SUBMIT ================= */
+
+/* ================= FORM SUBMIT ================= */
+
+document.getElementById("registerForm").addEventListener("submit", async function(e){
+    // 1. STOP the form immediately so it doesn't submit empty fields
+    e.preventDefault();
+
+    const password = document.getElementById("regPassword").value;
+
+    if(password.length < 4){
+        alert("Password too short");
+        return;
+    }
+
+    try {
+        // 2. WAIT for the keys to be generated and fields to be populated
+        console.log("Generating unique keys...");
+        await generateKeys(password);
+        
+        // 3. NOW manually trigger the submission
+        console.log("Keys generated. Submitting form.");
+        this.submit();
+
+    } catch(err) {
+        console.error("Key generation failed:", err);
+        alert("Failed to generate encryption keys. Please try again.");
+    }
+});
+
+
+/* AUTO HIDE TOAST */
+
+setTimeout(function(){
+
+const toasts=document.querySelectorAll(".toast");
+
+toasts.forEach(function(toast){
+
+toast.classList.add("hide");
+
+setTimeout(()=>{
+
+toast.remove();
+
+},500);
+
+});
+
+},3000);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unlock Key</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="modal-overlay" style="display:flex;">
+    <div class="modal-box">
+        <h2>🔐 Unlock Private Key</h2>
+        <p>Enter your password to continue</p>
+
+        <input type="password" id="password" placeholder="Enter password">
+
+        <button onclick="unlock()">Unlock</button>
+    </div>
+</div>
+
+<script>
+
+function base64ToArrayBuffer(base64){
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++){
+        bytes[i]=binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+function arrayBufferToBase64(buffer){
+    let binary="";
+    const bytes=new Uint8Array(buffer);
+    for(let i=0;i<bytes.byteLength;i++){
+        binary+=String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+async function unlock(){
+
+    const password = document.getElementById("password").value;
+
+    if(!password){
+        alert("Enter password");
+        return;
+    }
+
+    const encryptedPrivateKey = "{{ encrypted_private_key }}";
+    const ivBase64 = "{{ private_key_iv }}";
+
+    try {
+
+        const enc = new TextEncoder();
+
+        const passwordKey = await crypto.subtle.importKey(
+            "raw",
+            enc.encode(password),
+            "PBKDF2",
+            false,
+            ["deriveKey"]
+        );
+
+        const aesKey = await crypto.subtle.deriveKey(
+            {
+                name:"PBKDF2",
+                salt:enc.encode("vaultsync_salt"),
+                iterations:100000,
+                hash:"SHA-256"
+            },
+            passwordKey,
+            {name:"AES-GCM",length:256},
+            false,
+            ["decrypt"]
+        );
+
+        const decrypted = await crypto.subtle.decrypt(
+            {
+                name:"AES-GCM",
+                iv:new Uint8Array(base64ToArrayBuffer(ivBase64))
+            },
+            aesKey,
+            base64ToArrayBuffer(encryptedPrivateKey)
+        );
+
+        const privateKeyBase64 = arrayBufferToBase64(decrypted);
+
+        sessionStorage.setItem("private_key", privateKeyBase64);
+
+        // ✅ SUCCESS → GO DASHBOARD
+        window.location.href = "/dashboard";
+
+    } catch(err){
+        alert("❌ Wrong password!");
+    }
+}
+
+</script>
+
+</body>
+</html>

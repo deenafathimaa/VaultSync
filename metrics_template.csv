@@ -1,0 +1,4 @@
+file_size_mb,upload_non_encrypted_s,upload_encrypted_s,download_open_non_encrypted_s,download_open_encrypted_s,size_before_mb,size_after_mb,approve_total_ms,reject_request_ms,download_authorized_ms,download_unauthorized_ms
+0.119,0.030483333333333335,0.0337,0.03585,0.0439,0.119,0.119,29.925,9.982,86.7415,nan
+6.828,0.110075,0.5568833333333333,0.061475,0.22903333333333334,6.828,6.828,29.925,9.982,86.7415,nan
+13.537,0.18966666666666665,1.0800666666666665,0.0871,0.4141666666666666,13.537,13.537,29.925,9.982,86.7415,nan

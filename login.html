@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VaultSync | Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>VaultSync</h2>
+        <p class="subtitle">Safe. Secure. Private.</p>
+
+        <!-- FLASH POPUP -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="toast-container">
+              {% for category, message in messages %}
+                <div class="toast {{ category }}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            
+            <div class="input-group">
+                <input type="text" name="username" placeholder="Username" required>
+            </div>
+
+            <div class="input-group">
+                <input type="password" name="password" id="password" placeholder="Password" required>
+
+                <span class="toggle-password" onclick="togglePassword()">
+                    <svg width="22" height="22" fill="none" stroke="white" stroke-width="2"
+                         viewBox="0 0 24 24">
+                        <path id="eyeSlash" d="M1 1l22 22"/>
+                        <path d="M17.94 17.94A10.94 10.94 0 0112 19C5 19 1 12 1 12a21.82 21.82 0 015.17-6.53M9.88 4.24A10.94 10.94 0 0112 5c7 0 11 7 11 7a21.82 21.82 0 01-4.35 5.77"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </span>
+            </div>
+
+            <!-- Hidden encrypted key data -->
+            <input type="hidden" id="encrypted_private_key" value="{{ encrypted_private_key }}">
+            <input type="hidden" id="private_key_iv" value="{{ private_key_iv }}">
+
+            <button type="submit">LOGIN</button>
+        </form>
+
+        <div class="login-links">
+            <a href="/register">Create Account</a>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+
+/* ================= PASSWORD TOGGLE ================= */
+function togglePassword() {
+    const passwordField = document.getElementById("password");
+    const slash = document.getElementById("eyeSlash");
+
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+        slash.style.display = "none";
+    } else {
+        passwordField.type = "password";
+        slash.style.display = "block";
+    }
+}
+
+/* ================= AUTO HIDE TOAST ================= */
+setTimeout(function() {
+    const toasts = document.querySelectorAll(".toast");
+
+    toasts.forEach(function(toast) {
+        toast.classList.add("hide");
+
+        setTimeout(() => {
+            toast.remove();
+        }, 500);
+    });
+
+}, 3000);
+
+</script>
+
+</body>
+</html>
